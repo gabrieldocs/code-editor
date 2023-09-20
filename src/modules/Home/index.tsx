@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Button, Container, Grid, Typography } from "@mui/material";
+import {Box, Button, Container, Drawer, IconButton, Grid, Typography} from "@mui/material";
 import Appbar from "../components/Appbar";
 import { amber } from "@mui/material/colors";
 import { Editor } from "@monaco-editor/react";
-import { BugReport, DirectionsRun, PrecisionManufacturing, RunCircle } from "@mui/icons-material";
+import {BugReport, Close, DirectionsRun, PrecisionManufacturing, RunCircle, SmartToy} from "@mui/icons-material";
 import axios, { AxiosResponse } from "axios";
 import { toast } from 'react-toastify';
-
+import MutationTable from "../components/Tables";
 
 const ApiContent = ({ content }: any) => {
     // Split the content into an array of lines
@@ -44,8 +44,10 @@ export default function Home() {
         `])
     }
 
+    const [openPitest, setOpenPitest] = useState<boolean>(false);
     const [input, setInput] = useState<string>("");
-    const [output, setOutput] = useState<string>("");
+    const [output, setOutput] = useState<any>("");
+    const [testsOutput, setTestsOutput] = useState<any>("");
 
     const buildCode = async () => {
         await axios.post('http://localhost:5500/completitions/build-and-run')
@@ -61,13 +63,38 @@ export default function Home() {
     const getOutput = async () => {
         await axios.get('http://localhost:5500/completitions/retrieve')
             .then((res: AxiosResponse<any>) => {
-                setOutput(res.data.content)
+                // setOutput(res.data.content)
+                if(res.data.content) {
+                    const startIndex = res.data.content.indexOf(' T E S T S')
+                    const endIndex = res.data.content.indexOf('[INFO] -----------------------------------------------------------------------')
+
+                    const sliceString = res.data.content.slice(startIndex, endIndex)
+                    // setOutput(res.data.content)
+                    setTestsOutput(sliceString.replace(' T E S T S', 'Tests:'))
+                }
             })
             .catch((err) => {
                 setOutput('Falha ao consultar o terminal')
             })
             .finally(() => {
                 toast.info('Terminal query ended')
+            })
+
+    }
+
+    const getPitOutput = async () => {
+        await axios.get('http://localhost:5500/completitions/retrieve-pit')
+            .then((res: AxiosResponse<any>) => {
+                setOutput(res.data.mutations.mutation)
+                setOpenPitest(true)
+
+            })
+            .catch((err) => {
+                console.log(err)
+                setOutput('Falha ao consultar o terminal')
+            })
+            .finally(() => {
+                toast.info('Pit query ended')
             })
 
     }
@@ -104,13 +131,13 @@ export default function Home() {
                 minHeight: '100vh',
                 paddingBottom: '20vh'
             }}>
-                <Box mt={3} mb={3} sx={{ display: 'none'}}>
+                <Box mt={3} mb={3} sx={{display: 'none'}}>
                     <Typography variant="h1">Sentinel</Typography>
                     <Typography variant="h1">Test Agains Mutants</Typography>
                     <Typography variant="h5">Tryout a sample and learn by example</Typography>
                 </Box>
 
-                <Grid container sx={{ mt: 3}}>
+                <Grid container sx={{mt: 3}}>
                     <Grid item md={12}>
                         <Box sx={{
                             overflow: 'hidden'
@@ -121,7 +148,8 @@ export default function Home() {
                                 borderTopRightRadius: '12px',
                                 borderTopLeftRadius: '12px',
                             }}>
-                                <Typography variant="h5">This is a statement, it explains what is our target</Typography>
+                                <Typography variant="h5">This is a statement, it explains what is our
+                                    target</Typography>
                             </Box>
                             <Box
                                 sx={{
@@ -137,10 +165,16 @@ export default function Home() {
 
                                 <Box>
                                     <Box mb={2} display='flex' gap={1}>
-                                        <Button variant="outlined" startIcon={<PrecisionManufacturing />} onClick={createInstance}>Generate</Button>
-                                        <Button variant="outlined" startIcon={<DirectionsRun />} onClick={submitTestSuit}>Submit</Button>
-                                        <Button variant="outlined" startIcon={<BugReport />} onClick={buildCode}>Run code</Button>
-                                        <Button variant="outlined" startIcon={<DirectionsRun />} onClick={getOutput}>Terminal</Button>
+                                        <Button variant="outlined" startIcon={<PrecisionManufacturing/>}
+                                                onClick={createInstance}>Generate</Button>
+                                        <Button variant="outlined" startIcon={<DirectionsRun/>}
+                                                onClick={submitTestSuit}>Submit</Button>
+                                        <Button variant="outlined" startIcon={<BugReport/>} onClick={buildCode}>Run
+                                            code</Button>
+                                        <Button variant="outlined" startIcon={<DirectionsRun/>}
+                                                onClick={getOutput}>Terminal</Button>
+                                        <Button variant="outlined" startIcon={<SmartToy/>}
+                                                onClick={getPitOutput}>Pitest</Button>
                                     </Box>
                                     <Editor
                                         height="35vh"
@@ -175,13 +209,16 @@ public class Calculator {
                                         }}
                                     />
 
+                                    <Box mt={3} mb={2}>
+                                        <Typography variant={"h5"}>Novas Instâncias</Typography>
+                                    </Box>
                                     <Box ref={samplesRef}>
                                         {
                                             instances.map((instance: string) => {
                                                 return <Editor height="35vh"
-                                                    theme="vs-light"
-                                                    defaultLanguage="java"
-                                                    defaultValue={instance} />
+                                                               theme="vs-light"
+                                                               defaultLanguage="java"
+                                                               defaultValue={instance}/>
                                             })
                                         }
                                     </Box>
@@ -195,12 +232,54 @@ public class Calculator {
                                 borderBottomLeftRadius: '12px',
                                 borderBottomRightRadius: '12px',
                             }}>
-                                <ApiContent content={output} />
+                                <ApiContent content={testsOutput}/>
                             </Box>
                         </Box>
                     </Grid>
                 </Grid>
             </Container>
+            <Drawer anchor={'bottom'} open={openPitest}>
+                <Box mt={3} mb={3} p={2} sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                }}>
+                    <Box>
+                        <Typography variant={"h5"}>Sumário</Typography>
+                        <Typography variant={"body1"}>Listando sumário com mutantes vivos e mortos</Typography>
+                    </Box>
+                    <Box>
+                        <IconButton
+                            onClick={() => {
+                                setOpenPitest(false)
+                            }}>
+                            <Close/>
+                        </IconButton>
+                    </Box>
+                </Box>
+                <Box
+                    p={2}
+                    sx={{
+                        minHeight: "10vh"
+                    }}>
+                    <Typography variant={"h2"}>
+                        {
+                            output && output.filter((mutation: any) => mutation.$.status === 'KILLED').length + "/" + output.length
+                        }
+                    </Typography>
+                </Box>
+                <Box p={2}>
+                    <Typography variant={"h5"}>Sumário detalhado</Typography>
+                    <Typography variant={"body1"}>Veja os detalhes da execução</Typography>
+                </Box>
+                <Box
+                    sx={{
+                        minHeight: "20vh", marginBottom: "10vh", overflow: "hidden", overflowX: "scroll",
+                        paddingBottom: "48px"
+                }}>
+                    <MutationTable mutations={output}/>
+                </Box>
+            </Drawer>
         </>
-    )
+    );
 }
