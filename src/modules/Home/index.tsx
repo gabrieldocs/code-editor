@@ -3,7 +3,15 @@ import {Box, Button, Container, Drawer, IconButton, Grid, Typography} from "@mui
 import Appbar from "../components/Appbar";
 import { amber } from "@mui/material/colors";
 import { Editor } from "@monaco-editor/react";
-import {BugReport, Close, DirectionsRun, PrecisionManufacturing, RunCircle, SmartToy} from "@mui/icons-material";
+import {
+    BugReport, Build,
+    Close,
+    DirectionsRun,
+    PrecisionManufacturing,
+    RunCircle,
+    SmartToy,
+    Upload
+} from "@mui/icons-material";
 import axios, { AxiosResponse } from "axios";
 import { toast } from 'react-toastify';
 import MutationTable from "../components/Tables";
@@ -50,7 +58,7 @@ export default function Home() {
     const [testsOutput, setTestsOutput] = useState<any>("");
 
     const buildCode = async () => {
-        await axios.post('http://localhost:5500/completitions/build-and-run')
+        await axios.post('http://157.245.132.1:5500/completitions/build-and-run')
             .then((res: AxiosResponse<any>) => {
                 toast.info(res.data)
             })
@@ -61,7 +69,7 @@ export default function Home() {
     }
 
     const getOutput = async () => {
-        await axios.get('http://localhost:5500/completitions/retrieve')
+        await axios.get('http://157.245.132.1:5500/completitions/retrieve')
             .then((res: AxiosResponse<any>) => {
                 // setOutput(res.data.content)
                 if(res.data.content) {
@@ -83,7 +91,7 @@ export default function Home() {
     }
 
     const getPitOutput = async () => {
-        await axios.get('http://localhost:5500/completitions/retrieve-pit')
+        await axios.get('http://157.245.132.1:5500/completitions/retrieve-pit')
             .then((res: AxiosResponse<any>) => {
                 setOutput(res.data.mutations.mutation)
                 setOpenPitest(true)
@@ -100,7 +108,7 @@ export default function Home() {
     }
 
     const getContents = async () => {
-        await axios.get('http://localhost:5500/completitions/contents')
+        await axios.get('http://157.245.132.1:5500/completitions/contents')
             .then((res: AxiosResponse<any>) => {
                 setInput(res.data)
             })
@@ -110,7 +118,7 @@ export default function Home() {
     }
 
     const submitTestSuit = async () => {
-        await axios.post('http://localhost:5500/completitions/write-to-file', {
+        await axios.post('http://157.245.132.1:5500/completitions/write-to-file', {
             textContent: input
         })
             .then((res: AxiosResponse<any>) => {
@@ -165,14 +173,14 @@ export default function Home() {
 
                                 <Box>
                                     <Box mb={2} display='flex' gap={1}>
-                                        <Button variant="outlined" startIcon={<PrecisionManufacturing/>}
-                                                onClick={createInstance}>Generate</Button>
-                                        <Button variant="outlined" startIcon={<DirectionsRun/>}
+                                        {/*<Button variant="outlined" startIcon={<PrecisionManufacturing/>}*/}
+                                        {/*        onClick={createInstance}>Generate</Button>*/}
+                                        <Button variant="outlined" startIcon={<Upload/>}
                                                 onClick={submitTestSuit}>Submit</Button>
-                                        <Button variant="outlined" startIcon={<BugReport/>} onClick={buildCode}>Run
+                                        <Button variant="outlined" startIcon={<Build/>} onClick={buildCode}>Run
                                             code</Button>
                                         <Button variant="outlined" startIcon={<DirectionsRun/>}
-                                                onClick={getOutput}>Terminal</Button>
+                                                onClick={getOutput}>Terminal JUnit</Button>
                                         <Button variant="outlined" startIcon={<SmartToy/>}
                                                 onClick={getPitOutput}>Pitest</Button>
                                     </Box>
@@ -232,7 +240,7 @@ public class Calculator {
                                 borderBottomLeftRadius: '12px',
                                 borderBottomRightRadius: '12px',
                             }}>
-                                <ApiContent content={testsOutput}/>
+                                {output && <ApiContent content={testsOutput}/>}
                             </Box>
                         </Box>
                     </Grid>
