@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
-import {Box, Button, Container, Drawer, IconButton, Grid, Typography} from "@mui/material";
+import { Box, Button, Container, Drawer, IconButton, Grid, Typography } from "@mui/material";
 import Appbar from "../components/Appbar";
 import { amber } from "@mui/material/colors";
 import { Editor } from "@monaco-editor/react";
 import {
     BugReport, Build,
+    ChevronLeft,
     Close,
     DirectionsRun,
+    LiveHelp,
     PrecisionManufacturing,
     RunCircle,
     SmartToy,
@@ -15,6 +17,8 @@ import {
 import axios, { AxiosResponse } from "axios";
 import { toast } from 'react-toastify';
 import MutationTable from "../components/Tables";
+import Confetti from 'react-confetti'
+import MutationTableComponent from '../components/Tables';
 
 const ApiContent = ({ content }: any) => {
     // Split the content into an array of lines
@@ -58,21 +62,21 @@ export default function Home() {
     const [testsOutput, setTestsOutput] = useState<any>("");
 
     const buildCode = async () => {
-        await axios.post('http://157.245.132.1:5500/completitions/build-and-run')
+        await axios.post('http://localhost:5500/completitions/build-and-run')
             .then((res: AxiosResponse<any>) => {
                 toast.info(res.data)
             })
             .catch((err) => { })
             .finally(() => {
-                toast.info('Build request ended')
+                toast.success('Build request ended')
             })
     }
 
     const getOutput = async () => {
-        await axios.get('http://157.245.132.1:5500/completitions/retrieve')
+        await axios.get('http://localhost:5500/completitions/retrieve')
             .then((res: AxiosResponse<any>) => {
                 // setOutput(res.data.content)
-                if(res.data.content) {
+                if (res.data.content) {
                     const startIndex = res.data.content.indexOf(' T E S T S')
                     const endIndex = res.data.content.indexOf('[INFO] -----------------------------------------------------------------------')
 
@@ -91,9 +95,9 @@ export default function Home() {
     }
 
     const getPitOutput = async () => {
-        await axios.get('http://157.245.132.1:5500/completitions/retrieve-pit')
+        await axios.get('http://localhost:5500/completitions/retrieve-pit')
             .then((res: AxiosResponse<any>) => {
-                setOutput(res.data.mutations.mutation)
+                setOutput(res.data)
                 setOpenPitest(true)
 
             })
@@ -108,7 +112,7 @@ export default function Home() {
     }
 
     const getContents = async () => {
-        await axios.get('http://157.245.132.1:5500/completitions/contents')
+        await axios.get('http://localhost:5500/completitions/contents')
             .then((res: AxiosResponse<any>) => {
                 setInput(res.data)
             })
@@ -118,7 +122,7 @@ export default function Home() {
     }
 
     const submitTestSuit = async () => {
-        await axios.post('http://157.245.132.1:5500/completitions/write-to-file', {
+        await axios.post('http://localhost:5500/completitions/write-to-file', {
             textContent: input
         })
             .then((res: AxiosResponse<any>) => {
@@ -134,62 +138,95 @@ export default function Home() {
     }, [])
     return (
         <>
-            {/* <Appbar /> */}
-            <Container sx={{
-                minHeight: '100vh',
-                paddingBottom: '20vh'
-            }}>
-                <Box mt={3} mb={3} sx={{display: 'none'}}>
-                    <Typography variant="h1">Sentinel</Typography>
-                    <Typography variant="h1">Test Agains Mutants</Typography>
-                    <Typography variant="h5">Tryout a sample and learn by example</Typography>
-                </Box>
-
-                <Grid container sx={{mt: 3}}>
-                    <Grid item md={12}>
+            <Confetti width={window.innerWidth} height={window.innerHeight}/>
+            <Appbar />
+            <Grid container>
+                <Grid item md={3}
+                    sx={{
+                        backgroundColor: "#f0f9ff"
+                    }}>
+                    <Box p={3}>
                         <Box sx={{
-                            overflow: 'hidden'
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-start",
+                            gap: "12px"
                         }}>
-                            <Box sx={{
-                                bgcolor: amber['A400'],
-                                padding: '12px 24px',
-                                borderTopRightRadius: '12px',
-                                borderTopLeftRadius: '12px',
-                            }}>
-                                <Typography variant="h5">This is a statement, it explains what is our
-                                    target</Typography>
-                            </Box>
-                            <Box
-                                sx={{
-                                    padding: '12px 24px',
-                                    border: 'solid thin #ddd',
-                                }}>
-                                <Box mb={3} mt={3}>
-                                    <Typography variant="body1">
-                                        Here comes the text and the prompt. It might present you a nice slice of code
-                                        that should be evolved
-                                    </Typography>
-                                </Box>
+                            <IconButton size="small"><ChevronLeft /> </IconButton>
+                            <Typography variant="h5"><strong>Demo issue</strong></Typography>
+                        </Box>
+                        <Box mb={3} mt={3}>
 
-                                <Box>
-                                    <Box mb={2} display='flex' gap={1}>
-                                        {/*<Button variant="outlined" startIcon={<PrecisionManufacturing/>}*/}
-                                        {/*        onClick={createInstance}>Generate</Button>*/}
-                                        <Button variant="outlined" startIcon={<Upload/>}
-                                                onClick={submitTestSuit}>Submit</Button>
-                                        <Button variant="outlined" startIcon={<Build/>} onClick={buildCode}>Run
-                                            code</Button>
-                                        <Button variant="outlined" startIcon={<DirectionsRun/>}
-                                                onClick={getOutput}>Terminal JUnit</Button>
-                                        <Button variant="outlined" startIcon={<SmartToy/>}
-                                                onClick={getPitOutput}>Pitest</Button>
+                            <Typography variant="body1"
+                                sx={{
+                                    marginBottom: "18px"
+                                }}>
+                                Welcome to the world of Java! In this challenge, we practice printing to stdout.
+                            </Typography>
+                            <Typography variant="body1"
+                                sx={{
+                                    marginBottom: "18px"
+                                }}>
+                                The code stubs in your editor declare a Solution class and a main method. Complete the main method by copying the two lines of code below and pasting them inside the body of your main method.
+                            </Typography>
+                        </Box>
+                        <Button variant="contained" disableElevation endIcon={<LiveHelp />}>Dicas</Button>
+                    </Box>
+                </Grid>
+                <Grid item md={9}>
+                    <Container sx={{
+                        minHeight: 'calc(100vh - 96px)',
+                        // paddingBottom: '10vh'
+                    }}>
+                        <Box mt={3} mb={3} sx={{ display: 'none' }}>
+                            <Typography variant="h1">Sentinel</Typography>
+                            <Typography variant="h1">Test Agains Mutants</Typography>
+                            <Typography variant="h5">Tryout a sample and learn by example</Typography>
+                        </Box>
+
+                        <Grid container sx={{ mt: 3 }}>
+                            <Grid item md={12}>
+                                <Box sx={{
+                                    overflow: 'hidden'
+                                }}>
+                                    <Box sx={{
+                                        bgcolor: amber['A400'],
+                                        padding: '12px 24px',
+                                        borderTopRightRadius: '12px',
+                                        borderTopLeftRadius: '12px',
+                                    }}>
+                                        <Typography variant="h5">Classe CalculatorTest.java</Typography>
                                     </Box>
-                                    <Editor
-                                        height="35vh"
-                                        theme="vs-light"
-                                        defaultLanguage="java"
-                                        defaultValue={input !== "" ? input :
-                                            `
+                                    <Box
+                                        sx={{
+                                            padding: '12px 24px',
+                                            border: 'solid thin #ddd',
+                                        }}>
+                                        <Box mb={3} mt={3}>
+                                            <Typography variant="body1">
+                                                Edite o código abaixo para inserir novos casos de teste ou editar os testes existentes.
+                                            </Typography>
+                                        </Box>
+
+                                        <Box>
+                                            <Box mb={2} display='flex' gap={1}>
+                                                {/*<Button variant="outlined" startIcon={<PrecisionManufacturing/>}*/}
+                                                {/*        onClick={createInstance}>Generate</Button>*/}
+                                                <Button variant="outlined" startIcon={<Upload />}
+                                                    onClick={submitTestSuit}>Submit</Button>
+                                                <Button variant="outlined" startIcon={<Build />} onClick={buildCode}>Run
+                                                    code</Button>
+                                                <Button variant="outlined" startIcon={<DirectionsRun />}
+                                                    onClick={getOutput}>Terminal JUnit</Button>
+                                                <Button variant="outlined" startIcon={<SmartToy />}
+                                                    onClick={getPitOutput}>Pitest</Button>
+                                            </Box>
+                                            <Editor
+                                                height="35vh"
+                                                theme="vs-light"
+                                                defaultLanguage="java"
+                                                defaultValue={input !== "" ? input :
+                                                    `
 package com.santos;
 
 import javax.swing.*;
@@ -209,85 +246,72 @@ public class Calculator {
     }
 }
                     `
-                                        }
-                                        onChange={(e) => {
-                                            console.log(e)
-                                            if (e)
-                                                setInput(e)
-                                        }}
-                                    />
+                                                }
+                                                onChange={(e) => {
+                                                    console.log(e)
+                                                    if (e)
+                                                        setInput(e)
+                                                }}
+                                            />
 
-                                    <Box mt={3} mb={2}>
-                                        <Typography variant={"h5"}>Novas Instâncias</Typography>
+                                            {/* <Box mt={3} mb={2}>
+                                                <Typography variant={"h5"}>Novas Instâncias</Typography>
+                                            </Box>
+                                            <Box ref={samplesRef}>
+                                                {
+                                                    instances.map((instance: string) => {
+                                                        return <Editor height="35vh"
+                                                            theme="vs-light"
+                                                            defaultLanguage="java"
+                                                            defaultValue={instance} />
+                                                    })
+                                                }
+                                            </Box> */}
+                                        </Box>
                                     </Box>
-                                    <Box ref={samplesRef}>
-                                        {
-                                            instances.map((instance: string) => {
-                                                return <Editor height="35vh"
-                                                               theme="vs-light"
-                                                               defaultLanguage="java"
-                                                               defaultValue={instance}/>
-                                            })
-                                        }
+                                    <Box sx={{
+                                        backgroundColor: '#081B4B',
+                                        minHeight: '20vh',
+                                        color: 'white',
+                                        padding: '12px 24px',
+                                        borderBottomLeftRadius: '12px',
+                                        borderBottomRightRadius: '12px',
+                                    }}>
+                                        {output && <ApiContent content={testsOutput} />}
                                     </Box>
                                 </Box>
-                            </Box>
-                            <Box sx={{
-                                backgroundColor: '#081B4B',
-                                minHeight: '20vh',
-                                color: 'white',
-                                padding: '12px 24px',
-                                borderBottomLeftRadius: '12px',
-                                borderBottomRightRadius: '12px',
-                            }}>
-                                {output && <ApiContent content={testsOutput}/>}
+                            </Grid>
+                        </Grid>
+                    </Container>
+                    <Drawer anchor={'bottom'} open={openPitest}>
+                        <Box p={2} sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+
+                            backgroundColor: "navy",
+                            color: "white"
+                        }}>
+                            <Box>
+                                <IconButton
+                                    onClick={() => {
+                                        setOpenPitest(false)
+                                    }}>
+                                    <Close />
+                                </IconButton>
                             </Box>
                         </Box>
-                    </Grid>
-                </Grid>
-            </Container>
-            <Drawer anchor={'bottom'} open={openPitest}>
-                <Box mt={3} mb={3} p={2} sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}>
-                    <Box>
-                        <Typography variant={"h5"}>Sumário</Typography>
-                        <Typography variant={"body1"}>Listando sumário com mutantes vivos e mortos</Typography>
-                    </Box>
-                    <Box>
-                        <IconButton
-                            onClick={() => {
-                                setOpenPitest(false)
+                        <Box
+                            sx={{
+                                minHeight: "20vh", marginBottom: "10vh",
+                                paddingBottom: "48px"
                             }}>
-                            <Close/>
-                        </IconButton>
-                    </Box>
-                </Box>
-                <Box
-                    p={2}
-                    sx={{
-                        minHeight: "10vh"
-                    }}>
-                    <Typography variant={"h2"}>
-                        {
-                            output && output.filter((mutation: any) => mutation.$.status === 'KILLED').length + "/" + output.length
-                        }
-                    </Typography>
-                </Box>
-                <Box p={2}>
-                    <Typography variant={"h5"}>Sumário detalhado</Typography>
-                    <Typography variant={"body1"}>Veja os detalhes da execução</Typography>
-                </Box>
-                <Box
-                    sx={{
-                        minHeight: "20vh", marginBottom: "10vh", overflow: "hidden", overflowX: "scroll",
-                        paddingBottom: "48px"
-                }}>
-                    <MutationTable mutations={output}/>
-                </Box>
-            </Drawer>
+                            <MutationTableComponent xmlContent={output} />
+                        </Box>
+                    </Drawer>
+                </Grid>
+            </Grid>
         </>
+
     );
 }

@@ -10,6 +10,7 @@ import { RouterProvider } from 'react-router-dom';
 
 import 'react-toastify/dist/ReactToastify.css';
 import { router } from './router';
+import MainDialog from './components/MainDialog';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -34,6 +35,9 @@ const theme = createTheme({
       main: green[500],
     },
   },
+  shape: {
+    borderRadius: 12,
+  },
 });
 
 function App() {
@@ -52,6 +56,7 @@ function App() {
         pauseOnHover
         theme="light"
         />
+        {/* <MainDialog /> */}
         <RouterProvider router={router} />
         {/* <MainEditor></MainEditor> */}
     </ThemeProvider>
