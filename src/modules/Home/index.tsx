@@ -62,7 +62,7 @@ export default function Home() {
     const [testsOutput, setTestsOutput] = useState<any>("");
 
     const buildCode = async () => {
-        await axios.post('http://localhost:5500/completitions/build-and-run')
+        await axios.post('https://api.santosworkers.com/completitions/build-and-run')
             .then((res: AxiosResponse<any>) => {
                 toast.info(res.data)
             })
@@ -73,7 +73,7 @@ export default function Home() {
     }
 
     const getOutput = async () => {
-        await axios.get('http://localhost:5500/completitions/retrieve')
+        await axios.get('https://api.santosworkers.com/completitions/retrieve')
             .then((res: AxiosResponse<any>) => {
                 // setOutput(res.data.content)
                 if (res.data.content) {
@@ -95,7 +95,7 @@ export default function Home() {
     }
 
     const getPitOutput = async () => {
-        await axios.get('http://localhost:5500/completitions/retrieve-pit')
+        await axios.get('https://api.santosworkers.com/completitions/retrieve-pit')
             .then((res: AxiosResponse<any>) => {
                 setOutput(res.data)
                 setOpenPitest(true)
@@ -112,7 +112,7 @@ export default function Home() {
     }
 
     const getContents = async () => {
-        await axios.get('http://localhost:5500/completitions/contents')
+        await axios.get('https://api.santosworkers.com/completitions/contents')
             .then((res: AxiosResponse<any>) => {
                 setInput(res.data)
             })
@@ -122,7 +122,7 @@ export default function Home() {
     }
 
     const submitTestSuit = async () => {
-        await axios.post('http://localhost:5500/completitions/write-to-file', {
+        await axios.post('https://api.santosworkers.com/completitions/write-to-file', {
             textContent: input
         })
             .then((res: AxiosResponse<any>) => {
@@ -138,7 +138,11 @@ export default function Home() {
     }, [])
     return (
         <>
-            <Confetti width={window.innerWidth} height={window.innerHeight}/>
+        {
+            openPitest 
+            ?  <Confetti width={window.innerWidth} height={window.innerHeight}/>
+            : <></>
+        }
             <Appbar />
             <Grid container>
                 <Grid item md={3}
