@@ -1,16 +1,18 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, Button, Container, Drawer, IconButton, Grid, Typography } from "@mui/material";
+import { Box, Button, Container, Drawer, IconButton, Grid, Typography, Chip, InputAdornment, FormControl, TextField } from "@mui/material";
 import Appbar from "../components/Appbar";
 import { amber } from "@mui/material/colors";
 import { Editor } from "@monaco-editor/react";
 import {
     BugReport, Build,
     ChevronLeft,
+    ChevronRight,
     Close,
     DirectionsRun,
     LiveHelp,
     PrecisionManufacturing,
     RunCircle,
+    Search,
     SmartToy,
     Upload
 } from "@mui/icons-material";
@@ -19,6 +21,65 @@ import { toast } from 'react-toastify';
 import MutationTable from "../components/Tables";
 import Confetti from 'react-confetti'
 import MutationTableComponent from '../components/Tables';
+
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.min.js";
+import FileTree from "react-file-treeview";
+
+
+const TreeView = () => {
+    //create tree data*
+    const data = {
+        name: "treeview",
+        id: 1,
+        toggled: true,
+        child: [
+            {
+                name: "folder1",
+                id: 2,
+                child: [
+                    {
+                        name: "folder2",
+                        id: 5,
+                        child: [
+                            { name: "file3.py", id: 6, child: [] },
+                            { name: "file4.cpp", id: 7, child: [] },
+                        ],
+                    },
+                    { name: "file1.js", id: 3, child: [] },
+                    { name: "file2.ts", id: 4, child: [] },
+                ],
+            },
+        ],
+    };
+
+    //create Collapse button data
+    const [collapseAll, setCollapseAll] = useState(false);
+    const handleCollapseAll = (value: any) => setCollapseAll(value);
+
+    //Create file action data*
+    const handleFileOnClick = (file: any) => {
+        console.log(file);
+    };
+
+    const action = {
+        fileOnClick: handleFileOnClick,
+    };
+
+    //Create Decoration data*
+    const treeDecorator = {
+        showIcon: true,
+        iconSize: 18,
+        textSize: 15,
+        showCollapseAll: true,
+    };
+    return <FileTree
+        data={data}
+        action={action} //optional
+        collapseAll={{ collapseAll, handleCollapseAll }} //Optional
+        decorator={treeDecorator} //Optional
+    />
+}
 
 const ApiContent = ({ content }: any) => {
     // Split the content into an array of lines
@@ -39,6 +100,9 @@ const ApiContent = ({ content }: any) => {
         </div>
     );
 };
+
+// const BASE_URL = 'https://api.santosworkers.com'
+const BASE_URL = 'http://localhost:5500'
 
 
 export default function Home() {
@@ -61,8 +125,13 @@ export default function Home() {
     const [output, setOutput] = useState<any>("");
     const [testsOutput, setTestsOutput] = useState<any>("");
 
+    const [testRun, setTestRun] = useState(0);
+    const [failures, setFailures] = useState(0);
+    const [errors, setErrors] = useState(0);
+
+
     const buildCode = async () => {
-        await axios.post('https://api.santosworkers.com/completitions/build-and-run')
+        await axios.post(BASE_URL + '/completitions/build-and-run')
             .then((res: AxiosResponse<any>) => {
                 toast.info(res.data)
             })
@@ -73,7 +142,7 @@ export default function Home() {
     }
 
     const getOutput = async () => {
-        await axios.get('https://api.santosworkers.com/completitions/retrieve')
+        await axios.get(BASE_URL + '/completitions/retrieve')
             .then((res: AxiosResponse<any>) => {
                 // setOutput(res.data.content)
                 if (res.data.content) {
@@ -83,6 +152,30 @@ export default function Home() {
                     const sliceString = res.data.content.slice(startIndex, endIndex)
                     // setOutput(res.data.content)
                     setTestsOutput(sliceString.replace(' T E S T S', 'Tests:'))
+
+                    // Split the response into lines
+                    const lines = sliceString.split('\n');
+                    // Regular expressions to match relevant lines
+                    const testsRunRegex = /Tests run: (\d+),/;
+                    const failuresRegex = /Failures: (\d+),/;
+                    const errorsRegex = /Errors: (\d+),/;
+
+                    lines.forEach((line: any) => {
+                        const testRunMatch = testsRunRegex.exec(line);
+                        if (testRunMatch) {
+                            setTestRun(parseInt(testRunMatch[1], 10));
+                        }
+
+                        const failuresMatch = failuresRegex.exec(line);
+                        if (failuresMatch) {
+                            setFailures(parseInt(failuresMatch[1], 10));
+                        }
+
+                        const errorsMatch = errorsRegex.exec(line);
+                        if (errorsMatch) {
+                            setErrors(parseInt(errorsMatch[1], 10));
+                        }
+                    });
                 }
             })
             .catch((err) => {
@@ -95,7 +188,7 @@ export default function Home() {
     }
 
     const getPitOutput = async () => {
-        await axios.get('https://api.santosworkers.com/completitions/retrieve-pit')
+        await axios.get(BASE_URL + '/completitions/retrieve-pit')
             .then((res: AxiosResponse<any>) => {
                 setOutput(res.data)
                 setOpenPitest(true)
@@ -111,8 +204,12 @@ export default function Home() {
 
     }
 
-    const getContents = async () => {
-        await axios.get('https://api.santosworkers.com/completitions/contents')
+    const getContents = async (path?: string) => {
+        await axios.get(BASE_URL + '/completitions/contents', {
+            params: {
+                filePath: path ?? './public/unzipped/1693959366583_sample/sample/src/test/java/com/example/CalculatorTest.java'
+            }
+        })
             .then((res: AxiosResponse<any>) => {
                 setInput(res.data)
             })
@@ -122,7 +219,7 @@ export default function Home() {
     }
 
     const submitTestSuit = async () => {
-        await axios.post('https://api.santosworkers.com/completitions/write-to-file', {
+        await axios.post(BASE_URL + '/completitions/write-to-file', {
             textContent: input
         })
             .then((res: AxiosResponse<any>) => {
@@ -138,12 +235,12 @@ export default function Home() {
     }, [])
     return (
         <>
-        {
-            openPitest 
-            ?  <Confetti width={window.innerWidth} height={window.innerHeight}/>
-            : <></>
-        }
-            <Appbar />
+            {
+                openPitest
+                    ? <Confetti width={window.innerWidth} height={window.innerHeight} />
+                    : <></>
+            }
+            {/* <Appbar /> */}
             <Grid container>
                 <Grid item md={3}
                     sx={{
@@ -158,6 +255,20 @@ export default function Home() {
                         }}>
                             <IconButton size="small"><ChevronLeft /> </IconButton>
                             <Typography variant="h5"><strong>Demo issue</strong></Typography>
+                        </Box>
+
+                        <Box m={1}
+                            sx={{
+                                display: 'flex',
+                                gap: '12px',
+                                flexWrap: 'wrap'
+                            }}>
+                            <Chip label="CalculatorTest.java" />
+                            <Chip label="Calculator.java"
+                                onClick={async () => {
+                                    await getContents('./public/unzipped/1693959366583_sample/sample/src/main/java/com/example/Calculator.java')
+                                }} />
+                            <Chip label="Calculator2Test.java" />
                         </Box>
                         <Box mb={3} mt={3}>
 
@@ -175,6 +286,10 @@ export default function Home() {
                             </Typography>
                         </Box>
                         <Button variant="contained" disableElevation endIcon={<LiveHelp />}>Dicas</Button>
+                    </Box>
+
+                    <Box>
+                    <TreeView />
                     </Box>
                 </Grid>
                 <Grid item md={9}>
@@ -198,8 +313,25 @@ export default function Home() {
                                         padding: '12px 24px',
                                         borderTopRightRadius: '12px',
                                         borderTopLeftRadius: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between'
                                     }}>
-                                        <Typography variant="h5">Classe CalculatorTest.java</Typography>
+                                        <IconButton
+                                            sx={{
+                                                border: 'solid white thin'
+                                            }}>
+                                            <ChevronLeft />
+                                        </IconButton>
+                                        <Typography variant="body1">
+                                            <strong>
+                                                Classe CalculatorTest.java
+                                            </strong>
+                                        </Typography>
+
+                                        <IconButton>
+                                            <ChevronRight />
+                                        </IconButton>
                                     </Box>
                                     <Box
                                         sx={{
@@ -227,9 +359,9 @@ export default function Home() {
                                             </Box>
                                             <Editor
                                                 height="35vh"
-                                                theme="vs-light"
+                                                theme="vs-dark"
                                                 defaultLanguage="java"
-                                                defaultValue={input !== "" ? input :
+                                                value={input !== "" ? input :
                                                     `
 package com.santos;
 
@@ -274,15 +406,48 @@ public class Calculator {
                                         </Box>
                                     </Box>
                                     <Box sx={{
-                                        backgroundColor: '#081B4B',
-                                        minHeight: '20vh',
-                                        color: 'white',
+                                        // backgroundColor: '#081B4B',
+                                        backgroundColor: '#f8f8f8',
+                                        minHeight: '10vh',
+                                        color: 'blue',
                                         padding: '12px 24px',
                                         borderBottomLeftRadius: '12px',
                                         borderBottomRightRadius: '12px',
                                     }}>
-                                        {output && <ApiContent content={testsOutput} />}
+                                        <p>Test Run: {testRun}</p>
+                                        <p>Failures: {failures}</p>
+                                        <p>Errors: {errors}</p>
+                                        {/* {output && <ApiContent content={testsOutput} />} */}
                                     </Box>
+                                </Box>
+                                <Box
+                                    sx={{
+                                        mt: 1,
+                                        mb: 1,
+                                        minHeight: "10vh",
+                                        borderRadius: "12px",
+                                        backgroundColor: "#D3E3FD",
+                                        padding: "16px",
+                                    }}
+                                >
+                                    <FormControl fullWidth>
+                                        <TextField
+                                            label={"Digite uma pergunta"}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton>
+                                                            <Search />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <Typography variant="caption">
+                                        Este é um recurso experimental, podendo apresentar pequenas
+                                        variações ou falhas
+                                    </Typography>
                                 </Box>
                             </Grid>
                         </Grid>
