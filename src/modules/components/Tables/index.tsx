@@ -83,7 +83,15 @@ const MutationTableComponent = ({ xmlContent }: any) => {
                 {mutation.querySelector("mutatedClass").textContent}
               </TableCell> */}
               <TableCell align="center">
-                {mutation.querySelector("mutatedMethod").textContent}
+                <Box
+                  sx={{
+                    padding: "12px 24px",
+                    borderRadius: "12px",
+                    border: "solid red",
+                  }}
+                >
+                  {mutation.querySelector("mutatedMethod").textContent}
+                </Box>
               </TableCell>
               <TableCell align="center">
                 {/* {mutation.getAttribute("status")} */}

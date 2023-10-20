@@ -5,13 +5,16 @@ import {
   ChevronRight,
   Close,
   Error,
+  FindInPage,
   PlayArrow,
+  PrecisionManufacturing,
   Search,
   Sync,
   SyncProblem,
   Terminal,
 } from "@mui/icons-material";
 import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -38,17 +41,21 @@ export default function Home() {
   const samplesRef = useRef<HTMLDivElement | any>(null);
   const [instances, setInstances] = useState<any[]>([]);
 
-  function createInstance() {
-    setInstances([
-      ...instances,
-      `
-            /* 
-                @author: satoshi 
-                @description: create a nice description for the method
-                @created_at: ${new Date().toLocaleDateString()}
-            */
-        `,
-    ]);
+  const [query, setQuery] = useState<string>("");
+
+  async function createInstance() {
+    await axios
+      .post(BASE_URL + "/completitions/generate", {
+        input: query,
+      })
+      .then(async (res: AxiosResponse<any>) => {
+        setQuery(res.data);
+        // toast.info("Construindo código");
+        setInstances([...instances, res.data.text.choices[0].message.content]);
+      })
+      .catch((err) => {
+        setOutput("Falha gerar novas dicas");
+      });
   }
 
   const [openPitest, setOpenPitest] = useState<boolean>(false);
@@ -185,6 +192,8 @@ export default function Home() {
           item
           md={3}
           sx={{
+            // display: "none",
+            height: "100vh",
             backgroundColor: "#f0f9ff",
           }}
         >
@@ -204,52 +213,6 @@ export default function Home() {
                 <strong>PleTEST</strong>
               </Typography>
             </Box>
-            <Box m={1}>
-              <Typography>
-                Plataforma para ensino-aprendizagem de testes
-              </Typography>
-            </Box>
-            <Box
-              m={1}
-              sx={{
-                display: "flex",
-                gap: "12px",
-                flexWrap: "wrap",
-              }}
-            >
-              <Chip
-                label="CalculatorTest.java"
-                onClick={async () => {
-                  await getContents(
-                    "./public/unzipped/1693959366583_sample/sample/src/test/java/com/example/CalculatorTest.java"
-                  );
-                }}
-              />
-              <Chip
-                label="Calculator.java"
-                onClick={async () => {
-                  await getContents(
-                    "./public/unzipped/1693959366583_sample/sample/src/main/java/com/example/Calculator.java"
-                  );
-                }}
-              />
-              <Chip
-                label="Calculator2.java"
-                onClick={async () => {
-                  await getContents(
-                    "./public/unzipped/1693959366583_sample/sample/src/main/java/com/example/Calculator2.java"
-                  );
-                }}
-              />
-              <Chip
-                label="Calculator2Test.java"
-                onClick={async () => {
-                  await getContents(
-                    "./public/unzipped/1693959366583_sample/sample/src/test/java/com/example/Calculator2Test.java"
-                  );
-                }}
-              />
-            </Box>
             <Box mb={3} mt={3}>
               <Typography
                 variant="body1"
@@ -260,6 +223,68 @@ export default function Home() {
                 Bem vindo(a) ao mundo dos testes de software! Neste desafio
                 vamos praticar a escrita de casos de teste simples.
               </Typography>
+
+              <Box
+                m={1}
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Chip
+                  avatar={
+                    <Avatar>
+                      <FindInPage />
+                    </Avatar>
+                  }
+                  label="CalculatorTest.java"
+                  onClick={async () => {
+                    await getContents(
+                      "./public/unzipped/1693959366583_sample/sample/src/test/java/com/example/CalculatorTest.java"
+                    );
+                  }}
+                />
+                <Chip
+                  avatar={
+                    <Avatar>
+                      <FindInPage />
+                    </Avatar>
+                  }
+                  label="Calculator.java"
+                  onClick={async () => {
+                    await getContents(
+                      "./public/unzipped/1693959366583_sample/sample/src/main/java/com/example/Calculator.java"
+                    );
+                  }}
+                />
+                <Chip
+                  avatar={
+                    <Avatar>
+                      <FindInPage />
+                    </Avatar>
+                  }
+                  label="Calculator2.java"
+                  onClick={async () => {
+                    await getContents(
+                      "./public/unzipped/1693959366583_sample/sample/src/main/java/com/example/Calculator2.java"
+                    );
+                  }}
+                />
+                <Chip
+                  avatar={
+                    <Avatar>
+                      <FindInPage />
+                    </Avatar>
+                  }
+                  label="Calculator2Test.java"
+                  onClick={async () => {
+                    await getContents(
+                      "./public/unzipped/1693959366583_sample/sample/src/test/java/com/example/Calculator2Test.java"
+                    );
+                  }}
+                />
+              </Box>
               <Typography
                 variant="body1"
                 sx={{
@@ -278,14 +303,15 @@ export default function Home() {
             </Box>
           </Box>
         </Grid>
-        <Grid item md={9}>
-          <Container
-            sx={{
-              height: "calc(100vh - 24px)",
-              //   minHeight: "calc(100vh - 96px)",
-              // paddingBottom: '10vh'
-            }}
-          >
+        <Grid
+          item
+          md={9}
+          sx={{
+            height: "100vh",
+            overflow: "scroll",
+          }}
+        >
+          <Container>
             <Box mt={3} mb={3} sx={{ display: "none" }}>
               <Typography variant="h1">Sentinel</Typography>
               <Typography variant="h1">Test Agains Mutants</Typography>
@@ -295,7 +321,7 @@ export default function Home() {
             </Box>
 
             <Grid container sx={{ mt: 3 }}>
-              <Grid item md={12}>
+              <Grid item md={12} sx={{ overflow: "scroll" }}>
                 <Box
                   sx={{
                     overflow: "hidden",
@@ -341,17 +367,22 @@ export default function Home() {
                       border: "solid thin #ddd",
                     }}
                   >
-                    <Box mb={3} mt={3}>
+                    {/* <Box mb={3} mt={3}>
                       <Typography variant="body1">
                         Edite o código abaixo para inserir novos casos de teste
                         ou editar os testes existentes.
                       </Typography>
-                    </Box>
+                    </Box> */}
 
                     <Box>
                       <Box mb={2} display="flex" gap={1}>
-                        {/*<Button variant="outlined" startIcon={<PrecisionManufacturing/>}*/}
-                        {/*        onClick={createInstance}>Generate</Button>*/}
+                        <Button
+                          variant="outlined"
+                          startIcon={<PrecisionManufacturing />}
+                          onClick={createInstance}
+                        >
+                          Generate
+                        </Button>
                         <Button
                           variant="outlined"
                           startIcon={<Sync />}
@@ -382,7 +413,7 @@ export default function Home() {
                         </Button>
                       </Box>
                       <Editor
-                        height="52vh"
+                        height="45vh"
                         theme="vs-light"
                         defaultLanguage="java"
                         value={
@@ -414,20 +445,6 @@ public class Calculator {
                           if (e) setInput(e);
                         }}
                       />
-
-                      {/* <Box mt={3} mb={2}>
-                                                <Typography variant={"h5"}>Novas Instâncias</Typography>
-                                            </Box>
-                                            <Box ref={samplesRef}>
-                                                {
-                                                    instances.map((instance: string) => {
-                                                        return <Editor height="35vh"
-                                                            theme="vs-light"
-                                                            defaultLanguage="java"
-                                                            defaultValue={instance} />
-                                                    })
-                                                }
-                                            </Box> */}
                     </Box>
                   </Box>
                   <Box
@@ -478,10 +495,47 @@ public class Calculator {
                     {/* {output && <ApiContent content={testsOutput} />} */}
                   </Box>
                 </Box>
+
+                <Box
+                  sx={{
+                    mt: 3,
+                    borderRadius: "12px",
+                    border: "solid thin #ddd",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box mt={3} mb={2} p={3}>
+                    <Typography variant={"h5"}>Assistente por IA</Typography>
+                    <Typography variant={"body1"}>
+                      Exemplos gerados a partir do input fornecido:
+                    </Typography>
+                  </Box>
+                  <Box ref={samplesRef}>
+                    {instances.map((instance: string, index: number) => {
+                      return (
+                        <Box mt={3} mb={3}>
+                          <Box p={2}>
+                            <Typography>
+                              Aqui está um exemplo de como testar o fragmento de
+                              código selecionado - {index}
+                            </Typography>
+                          </Box>
+                          <Editor
+                            height="35vh"
+                            theme="vs-light"
+                            defaultLanguage="java"
+                            defaultValue={instance}
+                          />
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
                 <Box
                   sx={{
                     mt: 1,
                     mb: 1,
+                    backgroundColor: "white",
                     minHeight: "10vh",
                     borderRadius: "12px",
                     // backgroundColor: "#D3E3FD",
@@ -492,10 +546,13 @@ public class Calculator {
                   <FormControl fullWidth>
                     <TextField
                       label={"Digite uma pergunta"}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                      }}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
-                            <IconButton>
+                            <IconButton onClick={createInstance}>
                               <Search />
                             </IconButton>
                           </InputAdornment>
