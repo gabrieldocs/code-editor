@@ -15,9 +15,11 @@ import {
 } from "@mui/icons-material";
 import {
   Avatar,
+  Backdrop,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Container,
   Dialog,
   Divider,
@@ -42,8 +44,11 @@ export default function Home() {
   const [instances, setInstances] = useState<any[]>([]);
 
   const [query, setQuery] = useState<string>("");
+  const [query_status, setQueryStatus] = useState<boolean>(false);
+  const [openConfetti, setOpenConfetti] = useState<boolean>(false);
 
   async function createInstance() {
+    setQueryStatus(true);
     await axios
       .post(BASE_URL + "/completitions/generate", {
         input: query,
@@ -55,6 +60,14 @@ export default function Home() {
       })
       .catch((err) => {
         setOutput("Falha gerar novas dicas");
+      })
+      .finally(() => {
+        setQueryStatus(false);
+        const i = setTimeout(() => {
+          setOpenConfetti(false);
+        }, 5000);
+
+        setOpenConfetti(true);
       });
   }
 
@@ -181,11 +194,14 @@ export default function Home() {
   return (
     <>
       {/* <Confetti width={window.innerWidth} height={window.innerHeight} /> */}
-      {openPitest ? (
+      {openPitest || openConfetti ? (
         <Confetti width={window.innerWidth} height={window.innerHeight} />
       ) : (
         <></>
       )}
+      <Backdrop open={query_status} sx={{ zIndex: 100000 }}>
+        <CircularProgress color="primary" />
+      </Backdrop>
       {/* <Appbar /> */}
       <Grid container>
         <Grid
