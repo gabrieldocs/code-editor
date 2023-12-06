@@ -6,11 +6,21 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
+import { green } from '@mui/material/colors';
+import { useAuth } from '../../../context/auth';
+import { Avatar } from '@mui/material';
+import { ExitToApp } from '@mui/icons-material';
+import { useLogout } from '../../../context/auth/useLogout';
 
 export default function Appbar() {
+
+  const { state } = useAuth();
+  const { logout } = useLogout();
+
+
   return (
     <Box sx={{ flexGrow: 1 }} >
-      <AppBar 
+      <AppBar
         position="static"
         elevation={0}
         sx={{
@@ -28,9 +38,26 @@ export default function Appbar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            SENTINELA
+            <Box>
+              PLETest
+            </Box>
           </Typography>
-          <Button color="inherit">Login</Button>
+          {
+            state.authIsReady
+              ? state.user
+                ? <React.Fragment>
+                  <Box sx={{
+                    display: "flex",
+                    gap: "12px"
+                  }}>
+                    <Avatar src={state.user.photoURL} alt="" />
+                    <Button variant="contained" onClick={logout} disableElevation startIcon={<ExitToApp />}>Sair</Button>
+                  </Box>
+                </React.Fragment>
+                : <></>
+              : <Button color="inherit">Login</Button>
+          }
+
         </Toolbar>
       </AppBar>
     </Box>

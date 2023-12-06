@@ -9,8 +9,13 @@ import { ToastContainer } from 'react-toastify';
 import { RouterProvider } from 'react-router-dom';
 
 import 'react-toastify/dist/ReactToastify.css';
-import { router } from './router';
+import routes from './router';
 import MainDialog from './components/MainDialog';
+import { AuthProvider, useAuth } from './context/auth';
+import Routes from './router';
+import { PrivateRouter, PublicRouter } from './router/routes';
+import { PublicRounded } from '@mui/icons-material';
+import Appbar from './modules/components/Appbar';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -41,7 +46,7 @@ const theme = createTheme({
 });
 
 function App() {
-  
+  const { state } = useAuth()
   return (
     <ThemeProvider theme={theme}>
       <ToastContainer
@@ -55,10 +60,9 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
-        />
-        {/* <MainDialog /> */}
-        <RouterProvider router={router} />
-        {/* <MainEditor></MainEditor> */}
+      />
+        <Appbar />
+        <RouterProvider router={state.authIsReady && state.user ? PrivateRouter : PublicRouter} />
     </ThemeProvider>
   );
 }

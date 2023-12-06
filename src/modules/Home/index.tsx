@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Close,
   Error,
+  ExitToApp,
   FindInPage,
   PlayArrow,
   PrecisionManufacturing,
@@ -35,6 +36,7 @@ import { useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti";
 import { toast } from "react-toastify";
 import MutationTableComponent from "../components/Tables";
+import { useLogout } from "../../context/auth/useLogout";
 
 const BASE_URL = "https://api.santosworkers.com";
 // const BASE_URL = "http://localhost:5500";
@@ -46,6 +48,8 @@ export default function Home() {
   const [query, setQuery] = useState<string>("");
   const [query_status, setQueryStatus] = useState<boolean>(false);
   const [openConfetti, setOpenConfetti] = useState<boolean>(false);
+
+  const { logout} = useLogout();
 
   async function createInstance() {
     setQueryStatus(true);
@@ -218,7 +222,7 @@ export default function Home() {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "flex-start",
+                justifyContent: "space-between",
                 gap: "12px",
               }}
             >
@@ -228,6 +232,10 @@ export default function Home() {
               <Typography variant="h5">
                 <strong>PleTEST</strong>
               </Typography>
+
+              <IconButton onClick={logout}>
+                <ExitToApp />
+              </IconButton>
             </Box>
             <Box mb={3} mt={3}>
               <Typography

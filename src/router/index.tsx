@@ -1,14 +1,12 @@
-import { createBrowserRouter } from "react-router-dom"
-import Home from "../modules/Home"
-import Intro from "../modules/Intro"
+import { useAuth } from "../context/auth";
+import { PrivateRouter, PublicRouter } from "./routes";
 
-export const router = createBrowserRouter([
-    {
-        path: '/teste',
-        element: <Intro />
-    },
-    {
-        path: '/',
-        element: <Home /> 
+export default function Routes () {
+    const { state } = useAuth();
+
+    if(state.authIsReady && state.user) {
+        return PrivateRouter
+    } else {
+        return PublicRouter
     }
-])
+}
